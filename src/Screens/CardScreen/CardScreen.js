@@ -1,15 +1,12 @@
 import React, {useEffect, useState} from 'react'
 import axios from 'axios'
 
+const CardScreen = React.memo(({ match, characters }) => {
 
-const CardScreen = React.memo(({ match }) => {
-
-    const [char, setChar] = useState({})
     const [episodeIds, setEpisodeIds] = useState('')
     const [episodeNames, setEpisodeNames] = useState([])
-    const [charLocationUrl, setCharLocationUrl] = useState('')
-    const [residentIds, setResidentIds] = useState('')
     const [residents, setResidents] = useState([])
+    const [char, setChar] = useState({})
 
     const getId = (txt) => {
         const n = txt.length
@@ -28,44 +25,25 @@ const CardScreen = React.memo(({ match }) => {
     }
 
     useEffect(() => {
-        if(!match.params.id)
-        return
-        axios.get(`https://rickandmortyapi.com/api/character/${match.params.id}`)
-        .then( res => {
-            // karakateri getir
-            setChar(res.data) 
-            // karakterin oynadığı bölümlerin id lerini getir
-            let arr = []
-            for(let i of res.data.episode) {
-                arr.push(getId(i))  
-            }
-            setEpisodeIds( arr.join(',')  )
-            setCharLocationUrl(res.data.location.url)
-            }
-        )  
+        if(!characters) return
 
-    },[]);
+        const filteredChar = characters.filter( ch => ch.id == match.params.id)[0]
+        if(!filteredChar) return
+        const cchar = {...filteredChar}
+        setChar(cchar)
+        const sameLocations = characters.filter(ch => cchar.location.name === ch.location.name )
+        setResidents(sameLocations.filter(ch => ch.id != match.params.id))
+        let arr = []
+        for(let i of cchar.episode) {
+            arr.push(getId(i))  
+        }
+        setEpisodeIds( arr.join(',') )
+    },[characters, match.params.id])
 
-    useEffect(() => {
-        //karakterin gezenindeki karakterlerin id lerini getir
-        if(!charLocationUrl)
-        return
-        axios.get(charLocationUrl)
-        .then( res => {
-                let arr = []
-                for(let i of {...res.data}.residents) {
-                    arr.push(getId(i))
-                }
-                setResidentIds(arr.filter(item => item !== match.params.id).join(','))  
-            }
-        )
-           
-    }, [charLocationUrl])
 
     useEffect(() => {
         //karakterin oynadığı bölümlerin isimlerini getir
-        if(!episodeIds)
-        return
+        if(!episodeIds) return
         axios.get(`https://rickandmortyapi.com/api/episode/${episodeIds}`)
         .then( res => {
                 let arr = []
@@ -77,23 +55,10 @@ const CardScreen = React.memo(({ match }) => {
                 }
                 else{
                     setEpisodeNames(res.data)
-                }
-                
+                } 
             }
-        )
-           
+        )     
     }, [episodeIds])
-
-    useEffect(() => {
-        //karakterin gezegenindeki diğer karakterleri getir
-        if(!residentIds)
-        return
-        axios.get(`https://rickandmortyapi.com/api/character/${residentIds}`)
-        .then( res => {
-                setResidents( res.data )
-            }
-        )         
-    }, [residentIds])
 
         
     return <div className='flex flex-wrap items-start pa3 tc'>
@@ -127,11 +92,6 @@ const CardScreen = React.memo(({ match }) => {
                 }) : <li className='dib' key={episodeNames.id}> <div className='dib si-unknown'></div> {episodeNames.name}</li>}
             </ul>
         </div>
-        {/* {console.log('Lokasyon URL',charLocationUrl)}
-        {console.log('Episode IDS', episodeIds)}
-        {console.log('Episode names',episodeNames)}
-        {console.log('Resident IDS',residentIds)}
-        {console.log('Residents',residents)} */}
     </div>
 
 })

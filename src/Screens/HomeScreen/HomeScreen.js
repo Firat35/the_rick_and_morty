@@ -2,18 +2,18 @@ import React, { useState, useEffect } from 'react'
 import CardList from './Components/CardList'
 import SearchBox from './Components/SearchBox'
 
-const HomeScreen = ({characters, nextChars}) => {
+const HomeScreen = React.memo( ({ characters }) => {
 
     const [searchField, setSearchField] =  useState('')
     const [chars, setChars] = useState([])
     const [showMore,setShowMore] = useState(true);
-    const [index,setIndex] = useState(0);
+    const [index,setIndex] = useState(20);
 
     useEffect(() => {
-        setChars(characters)
+        setChars(characters.slice(0, 20))
       }, [characters]);
    
-    const filteredChars = [...new Set([...chars, ...nextChars])].filter(user =>{
+    const filteredChars = [...new Set([...chars])].filter(user =>{
         return user.name.toLowerCase().includes(searchField.toLowerCase())
         })
 
@@ -22,9 +22,12 @@ const HomeScreen = ({characters, nextChars}) => {
     }
 
     const loadMore = () => {
-        const newIndex = index + 20
-        const newShowMore = newIndex < 380
-        const arr = nextChars.slice(index, newIndex)
+        let newIndex = index + 20
+        if(newIndex === 680) {
+            newIndex -= 9
+        }
+        const newShowMore = newIndex < 671
+        const arr = characters.slice(index, newIndex)
         setChars(chars => [...chars, ...arr ]  ) 
         setIndex(newIndex)   
         setShowMore(newShowMore)
@@ -37,7 +40,7 @@ const HomeScreen = ({characters, nextChars}) => {
         <CardList characters= { searchField ? filteredChars : chars } />
         {!searchField && showMore && <button className='f6 grow no-underline br-pill ph3 pv2 mb2 dib white bg-light-purple mv4' onClick={loadMore}> Load More... </button>}
     </div>
-}
+})
 export default HomeScreen
 
 

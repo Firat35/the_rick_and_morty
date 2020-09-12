@@ -8,43 +8,37 @@ import CardScreen from './Screens/CardScreen/CardScreen';
 
 const App = React.memo( () => {
 
-    const [characters, setCharacter] =  useState([])
-    const [nextChars, setNextChars] = useState([])
+    const [characters, setCharacters] =  useState([])
 
     useEffect(  () => {
         const fetchData = async () => {
-            
-            await axios.get(`https://rickandmortyapi.com/api/character/?page=1`)
-            .then( res => {
-            setCharacter(res.data.results)
-            })
-
-            var arr = []
-            for(let i=2; i<=20; i++){
-                 await axios.get(`https://rickandmortyapi.com/api/character/?page=${i}`)
+            let arr = []
+            for(let i=1; i<=34; i++){
+                await axios.get(`https://rickandmortyapi.com/api/character/?page=${i}`)
                 .then( res => {
-                 arr = arr.concat(res.data.results)
+                    arr = [...arr, ...res.data.results]
                 })                           
             }  
-            setNextChars(arr)             
-        }
-        
+            setCharacters(arr)             
+        } 
+
         fetchData()
-        
     }, []) 
 
     return <div>
         <Router>                   
             <Route 
                 path="/card/:id" 
-                component={ CardScreen }
+                render={(props) => (
+                    <CardScreen {...props} characters={characters}  />
+                )}
                  /> 
             
             <Route
                 path='/' 
                 exact={true} 
                 render={(props) => (
-                    <HomeScreen {...props} characters={characters} nextChars= {nextChars} />
+                    <HomeScreen {...props} characters={characters} />
                 )}
             /> 
         </Router>  
